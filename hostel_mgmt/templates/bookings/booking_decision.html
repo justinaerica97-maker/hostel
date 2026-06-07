@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}{% if action == 'approve' %}Approve{% else %}Reject{% endif %} Booking — Makerere Hostels{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-inner">
+      <div>
+        <h1>
+          {% if action == 'approve' %}
+            <i class="fa-solid fa-circle-check" style="color:var(--green-600);"></i> Approve Booking
+          {% else %}
+            <i class="fa-solid fa-circle-xmark" style="color:var(--red-600);"></i> Reject Booking
+          {% endif %}
+        </h1>
+        <p>Review booking details and confirm your decision</p>
+      </div>
+      <a href="{% url 'manage_bookings' %}" class="btn btn-gray"><i class="fa-solid fa-arrow-left"></i> Back</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="container" style="max-width:640px;">
+
+    <!-- Booking Summary -->
+    <div class="card" style="margin-bottom:24px;">
+      <div class="card-header"><h3>Booking Details</h3></div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div>
+            <div class="text-xs text-muted">Student</div>
+            <div class="font-semibold">{{ booking.student.get_full_name|default:booking.student.username }}</div>
+            <div class="text-sm text-muted">{{ booking.student.student_number }}</div>
+            <div class="text-sm text-muted">{{ booking.student.email }}</div>
+          </div>
+          <div>
+            <div class="text-xs text-muted">Course</div>
+            <div class="font-semibold">{{ booking.student.course }}</div>
+          </div>
+          <div>
+            <div class="text-xs text-muted">Hostel</div>
+            <div class="font-semibold">{{ booking.room.hostel.name }}</div>
+          </div>
+          <div>
+            <div class="text-xs text-muted">Room</div>
+            <div class="font-semibold">Room {{ booking.room.room_number }}</div>
+            <div class="text-sm text-muted">{{ booking.room.get_room_type_display }} · UGX {{ booking.room.price_per_semester|floatformat:0 }}/semester</div>
+          </div>
+          <div>
+            <div class="text-xs text-muted">Semester</div>
+            <div class="font-semibold">{{ booking.semester }}</div>
+          </div>
+          <div>
+            <div class="text-xs text-muted">Submitted</div>
+            <div class="font-semibold">{{ booking.created_at|date:"d M Y, H:i" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decision Form -->
+    <div class="card" style="border-top:4px solid {% if action == 'approve' %}var(--green-600){% else %}var(--red-600){% endif %};">
+      <div class="card-header">
+        <h3>Confirm {% if action == 'approve' %}Approval{% else %}Rejection{% endif %}</h3>
+      </div>
+      <div class="card-body">
+        {% if action == 'approve' %}
+        <div style="background:var(--green-100);border-radius:var(--radius);padding:14px;margin-bottom:20px;color:var(--green-700);font-size:0.875rem;">
+          <i class="fa-solid fa-circle-check"></i>
+          Approving this booking will mark the room as <strong>Occupied</strong> and send an email notification to the student.
+        </div>
+        {% else %}
+        <div style="background:var(--red-100);border-radius:var(--radius);padding:14px;margin-bottom:20px;color:var(--red-600);font-size:0.875rem;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Rejecting this booking will send a notification email to the student. The room will remain available.
+        </div>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="form-label">Note to Student (optional)</label>
+            {{ form.manager_note }}
+            <div class="form-help">
+              {% if action == 'approve' %}Provide any additional information about check-in or next steps.
+              {% else %}Explain the reason for rejection so the student can find alternative accommodation.{% endif %}
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;">
+            <button type="submit" class="btn {% if action == 'approve' %}btn-success{% else %}btn-danger{% endif %} btn-lg">
+              {% if action == 'approve' %}
+                <i class="fa-solid fa-check"></i> Confirm Approval
+              {% else %}
+                <i class="fa-solid fa-xmark"></i> Confirm Rejection
+              {% endif %}
+            </button>
+            <a href="{% url 'manage_bookings' %}" class="btn btn-gray btn-lg">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

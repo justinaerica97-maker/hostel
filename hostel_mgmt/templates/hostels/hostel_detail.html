@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block title %}{{ hostel.name }} — Makerere Hostels{% endblock %}
+
+{% block content %}
+<!-- Hostel Hero -->
+<div style="background:var(--blue-900);color:white;padding:40px 0;">
+  <div class="container">
+    <a href="{% url 'hostel_list' %}" style="color:var(--blue-200);font-size:0.875rem;display:inline-flex;align-items:center;gap:6px;margin-bottom:16px;">
+      <i class="fa-solid fa-arrow-left"></i> Back to Hostels
+    </a>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+      <div>
+        <h1 style="color:white;font-size:2rem;margin-bottom:8px;">{{ hostel.name }}</h1>
+        <div style="display:flex;align-items:center;gap:8px;opacity:0.85;font-size:0.9rem;">
+          <i class="fa-solid fa-location-dot"></i>
+          {{ hostel.address }}
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:2rem;font-weight:700;">{{ hostel.available_rooms_count }}</div>
+        <div style="opacity:0.7;font-size:0.85rem;">rooms available</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 360px;gap:32px;align-items:start;" class="hostel-detail-grid">
+
+      <!-- Left Column -->
+      <div>
+        {% if hostel.image %}
+        <div style="border-radius:var(--radius-xl);overflow:hidden;margin-bottom:28px;max-height:400px;">
+          <img src="{{ hostel.image.url }}" alt="{{ hostel.name }}" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+        {% endif %}
+
+        <!-- Description -->
+        <div class="card" style="margin-bottom:24px;">
+          <div class="card-header"><h3><i class="fa-solid fa-circle-info"></i> About This Hostel</h3></div>
+          <div class="card-body">
+            <p style="white-space:pre-wrap;line-height:1.7;">{{ hostel.description }}</p>
+          </div>
+        </div>
+
+        <!-- Rooms -->
+        <div class="card" style="margin-bottom:24px;">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-door-open"></i> Rooms</h3>
+            <span class="badge badge-blue">{{ rooms.count }} total</span>
+          </div>
+          <div class="card-body">
+            {% if rooms %}
+              <div style="display:grid;gap:16px;">
+                {% for room in rooms %}
+                <div class="room-card">
+                  <div class="room-card-header">
+                    <div>
+                      <div class="room-number">Room {{ room.room_number }}</div>
+                      <div class="text-sm text-muted">{{ room.get_room_type_display }}</div>
+                    </div>
+                    <span class="badge badge-{{ room.status }}">{{ room.get_status_display }}</span>
+                  </div>
+                  {% if room.description %}
+                    <p class="text-sm text-muted">{{ room.description }}</p>
+                  {% endif %}
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div class="room-price">
+                      UGX {{ room.price_per_semester|floatformat:0 }}
+                      <span>/ semester</span>
+                    </div>
+                    {% if room.status == 'available' %}
+                      {% if user.is_authenticated and user.role == 'student' %}
+                        {% if has_active_booking %}
+                          <span class="text-muted text-sm" title="You already have a pending or approved booking">
+                            <i class="fa-solid fa-lock"></i> Already Booked
+                          </span>
+                        {% else %}
+                          <a href="{% url 'book_room' room.pk %}" class="btn btn-primary btn-sm">
+                            <i class="fa-solid fa-calendar-plus"></i> Book Now
+                          </a>
+                        {% endif %}
+                      {% elif not user.is_authenticated %}
+                        <a href="{% url 'login' %}?next={% url 'hostel_detail' hostel.pk %}" class="btn btn-outline btn-sm">
+                          Login to Book
+                        </a>
+                      {% endif %}
+                    {% else %}
+                      <span class="text-muted text-sm">Not available</span>
+                    {% endif %}
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="empty-state" style="padding:24px 0;">
+                <i class="fa-solid fa-door-closed"></i>
+                <p>No rooms listed for this hostel yet.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div>
+        <!-- Manager Info -->
+        {% if hostel.manager %}
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header"><h3><i class="fa-solid fa-user-tie"></i> Hostel Manager</h3></div>
+          <div class="card-body">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div style="width:44px;height:44px;border-radius:50%;background:var(--blue-100);display:flex;align-items:center;justify-content:center;color:var(--blue-600);font-weight:700;overflow:hidden;">
+                {% if hostel.manager.profile_picture %}
+                  {# BUG FIX: show manager's profile photo #}
+                  <img src="{{ hostel.manager.profile_picture.url }}" alt="Manager" style="width:100%;height:100%;object-fit:cover;">
+                {% else %}
+                  {{ hostel.manager.first_name|first|upper }}{{ hostel.manager.last_name|first|upper }}
+                {% endif %}
+              </div>
+              <div>
+                <div style="font-weight:600;">{{ hostel.manager.get_full_name|default:hostel.manager.username }}</div>
+                <div class="text-sm text-muted">Hostel Manager</div>
+              </div>
+            </div>
+            {% if hostel.manager.phone_number %}
+              <div class="text-sm" style="display:flex;align-items:center;gap:8px;color:var(--gray-600);">
+                <i class="fa-solid fa-phone"></i>
+                {{ hostel.manager.phone_number }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Contact Form: only for students and unauthenticated visitors -->
+        {% if not user.is_authenticated or user.role == 'student' %}
+        <div class="card">
+          <div class="card-header"><h3><i class="fa-solid fa-envelope"></i> Send a Message</h3></div>
+          <div class="card-body">
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="feedback_submit" value="1">
+              {% for field in feedback_form %}
+                <div class="form-group">
+                  <label class="form-label">{{ field.label }}</label>
+                  {% if user.is_authenticated and field.name in 'sender_name,sender_email' %}
+                    <input type="text" class="form-control" value="{{ field.value }}" readonly disabled style="background:var(--gray-50);color:var(--gray-500);">
+                    <input type="hidden" name="{{ field.html_name }}" value="{{ field.value }}">
+                  {% else %}
+                    {{ field }}
+                  {% endif %}
+                  {% for e in field.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+                </div>
+              {% endfor %}
+              <button type="submit" class="btn btn-primary btn-block">
+                <i class="fa-solid fa-paper-plane"></i> Send Message
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+@media (max-width: 768px) {
+  .hostel-detail-grid { grid-template-columns: 1fr !important; }
+}
+</style>
+{% endblock %}

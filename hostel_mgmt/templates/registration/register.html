@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Register — Makerere Hostels{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card" style="max-width:560px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;background:var(--blue-100);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.4rem;color:var(--blue-600);">
+        <i class="fa-solid fa-user-plus"></i>
+      </div>
+      <h1>Create Your Account</h1>
+      <p class="auth-subtitle">Register as a Makerere University student</p>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="grid-2" style="gap:16px;">
+        <div class="form-group">
+          <label class="form-label">First Name *</label>
+          <input type="text" name="first_name" class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
+            value="{{ form.first_name.value|default:'' }}" placeholder="John" required>
+          {% for e in form.first_name.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name *</label>
+          <input type="text" name="last_name" class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
+            value="{{ form.last_name.value|default:'' }}" placeholder="Doe" required>
+          {% for e in form.last_name.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Username *</label>
+        <input type="text" name="username" class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+          value="{{ form.username.value|default:'' }}" placeholder="johndoe" required>
+        {% for e in form.username.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email Address *</label>
+        <input type="email" name="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+          value="{{ form.email.value|default:'' }}" placeholder="your@email.com" required>
+        {% for e in form.email.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="grid-2" style="gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Student Number *</label>
+          <input type="text" name="student_number" class="form-control {% if form.student_number.errors %}is-invalid{% endif %}"
+            value="{{ form.student_number.value|default:'' }}" placeholder="21/U/XXXXX" required>
+          {% for e in form.student_number.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number *</label>
+          <input type="text" name="phone_number" class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}"
+            value="{{ form.phone_number.value|default:'' }}" placeholder="+256 700 000000" required>
+          {% for e in form.phone_number.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Course *</label>
+        <input type="text" name="course" class="form-control {% if form.course.errors %}is-invalid{% endif %}"
+          value="{{ form.course.value|default:'' }}" placeholder="e.g. BSc Computer Science" required>
+        {% for e in form.course.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="grid-2" style="gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          <input type="password" name="password1" class="form-control {% if form.password1.errors %}is-invalid{% endif %}" placeholder="Password" required>
+          {% for e in form.password1.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password *</label>
+          <input type="password" name="password2" class="form-control {% if form.password2.errors %}is-invalid{% endif %}" placeholder="Confirm password" required>
+          {% for e in form.password2.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+
+      {% if form.non_field_errors %}
+        {% for e in form.non_field_errors %}
+          <div class="alert alert-error" style="border-radius:var(--radius);margin-bottom:16px;">{{ e }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg">
+        <i class="fa-solid fa-user-plus"></i> Create Account
+      </button>
+    </form>
+
+    <hr class="divider">
+    <p class="text-center text-sm text-muted">Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
+  </div>
+</div>
+{% endblock %}

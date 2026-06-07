@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard — Makerere Hostels{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-inner">
+      <div>
+        <h1><i class="fa-solid fa-gauge"></i> Admin Dashboard</h1>
+        <p>System-wide overview and management</p>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <a href="{% url 'admin_users' %}" class="btn btn-outline btn-sm"><i class="fa-solid fa-users"></i> Manage Users</a>
+        <a href="/admin/" class="btn btn-primary btn-sm"><i class="fa-solid fa-screwdriver-wrench"></i> Django Admin</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="container">
+
+    <!-- Stats -->
+    <div class="grid-4" style="margin-bottom:32px;">
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="fa-solid fa-users"></i></div>
+        <div>
+          <div class="stat-value">{{ total_students }}</div>
+          <div class="stat-label">Registered Students</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="fa-solid fa-building"></i></div>
+        <div>
+          <div class="stat-value">{{ total_hostels }}</div>
+          <div class="stat-label">Total Hostels</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon yellow"><i class="fa-solid fa-door-open"></i></div>
+        <div>
+          <div class="stat-value">{{ total_rooms }}</div>
+          <div class="stat-label">Total Rooms</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red"><i class="fa-solid fa-calendar-check"></i></div>
+        <div>
+          <div class="stat-value">{{ total_bookings }}</div>
+          <div class="stat-label">Total Bookings</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts Row -->
+    <div class="grid-2" style="margin-bottom:32px;">
+      <div class="card" style="border-left:4px solid var(--yellow-600);">
+        <div class="card-body" style="display:flex;align-items:center;gap:16px;">
+          <div style="font-size:2rem;color:var(--yellow-600);"><i class="fa-solid fa-clock"></i></div>
+          <div>
+            <div style="font-size:1.8rem;font-weight:700;color:var(--gray-900);">{{ pending_bookings }}</div>
+            <div class="text-muted text-sm">Bookings awaiting approval</div>
+            <a href="{% url 'manage_bookings' %}?status=pending" class="btn btn-sm btn-outline" style="margin-top:8px;">Review Now</a>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--blue-600);">
+        <div class="card-body" style="display:flex;align-items:center;gap:16px;">
+          <div style="font-size:2rem;color:var(--blue-600);"><i class="fa-solid fa-envelope"></i></div>
+          <div>
+            <div style="font-size:1.8rem;font-weight:700;color:var(--gray-900);">{{ unread_feedback }}</div>
+            <div class="text-muted text-sm">Unread feedback messages</div>
+            <a href="{% url 'view_feedback' %}" class="btn btn-sm btn-outline" style="margin-top:8px;">View Messages</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="card" style="margin-bottom:32px;">
+      <div class="card-header"><h3>Quick Actions</h3></div>
+      <div class="card-body">
+        <div style="display:flex;flex-wrap:wrap;gap:12px;">
+          <a href="{% url 'create_hostel' %}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Hostel</a>
+          <a href="{% url 'manage_hostels' %}" class="btn btn-outline"><i class="fa-solid fa-building"></i> Manage Hostels</a>
+          <a href="{% url 'manage_bookings' %}" class="btn btn-outline"><i class="fa-solid fa-list-check"></i> All Bookings</a>
+          <a href="{% url 'admin_medical_records' %}" class="btn btn-outline"><i class="fa-solid fa-stethoscope"></i> Medical Records</a>
+          <a href="{% url 'view_feedback' %}" class="btn btn-outline"><i class="fa-solid fa-envelope"></i> Feedback</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="card" style="margin-bottom:32px;">
+      <div class="card-header">
+        <h3>Recent Bookings</h3>
+        <a href="{% url 'manage_bookings' %}" class="btn btn-outline btn-sm">View All</a>
+      </div>
+      {% if recent_bookings %}
+      <div class="table-container" style="border-radius:0;box-shadow:none;border:none;">
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Room</th>
+              <th>Hostel</th>
+              <th>Semester</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in recent_bookings %}
+            <tr>
+              <td>
+                <strong>{{ b.student.get_full_name|default:b.student.username }}</strong><br>
+                <span class="text-xs text-muted">{{ b.student.student_number }}</span>
+              </td>
+              <td>Room {{ b.room.room_number }}</td>
+              <td>{{ b.room.hostel.name }}</td>
+              <td>{{ b.semester }}</td>
+              <td><span class="badge badge-{{ b.status }}">{{ b.get_status_display }}</span></td>
+              <td class="text-muted text-xs">{{ b.created_at|date:"d M Y" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="card-body"><div class="empty-state" style="padding:32px 0;"><i class="fa-solid fa-calendar-xmark"></i><p>No bookings yet.</p></div></div>
+      {% endif %}
+    </div>
+
+    <!-- Recent Users -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Recent Users</h3>
+        <a href="{% url 'admin_users' %}" class="btn btn-outline btn-sm">View All</a>
+      </div>
+      <div class="table-container" style="border-radius:0;box-shadow:none;border:none;">
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr>
+          </thead>
+          <tbody>
+            {% for u in all_users %}
+            <tr>
+              <td><strong>{{ u.get_full_name|default:u.username }}</strong></td>
+              <td>{{ u.email }}</td>
+              <td><span class="badge badge-blue">{{ u.get_role_display }}</span></td>
+              <td class="text-xs text-muted">{{ u.date_joined|date:"d M Y" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

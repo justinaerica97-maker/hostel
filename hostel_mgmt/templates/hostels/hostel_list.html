@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}Browse Hostels — Makerere Hostels{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-inner">
+      <div>
+        <h1><i class="fa-solid fa-building"></i> Available Hostels</h1>
+        <p>Browse and find your ideal accommodation near Makerere University</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="container">
+
+    <!-- Search & Filter -->
+    <div class="search-bar">
+      <form method="get">
+        <div class="search-row">
+          <div class="form-group" style="flex:2;">
+            <label class="form-label">Search</label>
+            {{ form.q }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Room Type</label>
+            {{ form.room_type }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Max Price (UGX/semester)</label>
+            {{ form.max_price }}
+          </div>
+          <div class="form-group" style="min-width:auto;">
+            <label class="form-label">&nbsp;</label>
+            <button type="submit" class="btn btn-primary" style="display:block;width:100%;">
+              <i class="fa-solid fa-filter"></i> Filter
+            </button>
+          </div>
+          {% if request.GET %}
+          <div class="form-group" style="min-width:auto;">
+            <label class="form-label">&nbsp;</label>
+            <a href="{% url 'hostel_list' %}" class="btn btn-gray" style="display:block;text-align:center;">Clear</a>
+          </div>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+
+    <!-- Results count -->
+    {% if q %}
+    <p class="text-muted text-sm" style="margin-bottom:16px;">
+      Showing results for "<strong>{{ q }}</strong>" — {{ hostels|length }} hostel{% if hostels|length != 1 %}s{% endif %} found
+    </p>
+    {% endif %}
+
+    <!-- Hostel Grid -->
+    {% if hostels %}
+      <div class="grid-3">
+        {% for hostel in hostels %}
+        <div class="hostel-card">
+          <div class="hostel-card-image">
+            {% if hostel.image %}
+              <img src="{{ hostel.image.url }}" alt="{{ hostel.name }}">
+            {% else %}
+              <i class="fa-solid fa-building"></i>
+            {% endif %}
+          </div>
+          <div class="hostel-card-body">
+            <h3>{{ hostel.name }}</h3>
+            <div class="hostel-card-meta">
+              <i class="fa-solid fa-location-dot"></i>
+              {{ hostel.address|truncatechars:70 }}
+            </div>
+            <p class="text-sm text-muted" style="margin-bottom:12px;">{{ hostel.description|truncatechars:110 }}</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              {% for room in hostel.rooms.all %}
+                {% if forloop.first %}
+                  <span class="badge badge-blue">
+                    From UGX {{ room.price_per_semester|floatformat:0 }}/sem
+                  </span>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          <div class="hostel-card-footer">
+            <span class="badge {% if hostel.available_rooms_count > 0 %}badge-available{% else %}badge-occupied{% endif %}">
+              <i class="fa-solid fa-door-{% if hostel.available_rooms_count > 0 %}open{% else %}closed{% endif %}"></i>
+              {% if hostel.available_rooms_count > 0 %}
+                {{ hostel.available_rooms_count }} rooms available
+              {% else %}
+                Fully booked
+              {% endif %}
+            </span>
+            <a href="{% url 'hostel_detail' hostel.pk %}" class="btn btn-primary btn-sm">View Details</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card">
+        <div class="card-body">
+          <div class="empty-state">
+            <i class="fa-solid fa-building-circle-xmark"></i>
+            <h3>No hostels found</h3>
+            <p>{% if q %}Try adjusting your search filters.{% else %}No hostels are currently listed. Please check back soon.{% endif %}</p>
+            {% if q %}<a href="{% url 'hostel_list' %}" class="btn btn-primary" style="margin-top:16px;">Clear Filters</a>{% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

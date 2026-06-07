@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% block title %}My Medical Record — Makerere Hostels{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-inner">
+      <div>
+        <h1><i class="fa-solid fa-heart-pulse"></i> My Medical Record</h1>
+        <p>Your health information — visible to administrators only</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="container" style="max-width:680px;">
+    <div style="background:var(--blue-50);border:1px solid var(--blue-200);border-radius:var(--radius);padding:14px 18px;margin-bottom:24px;display:flex;gap:12px;align-items:flex-start;">
+      <i class="fa-solid fa-shield-halved" style="color:var(--blue-600);font-size:1.2rem;margin-top:2px;"></i>
+      <div class="text-sm" style="color:var(--blue-800);">
+        <strong>Privacy Notice:</strong> Your medical information is confidential and will only be accessible to Makerere University administrators for welfare purposes.
+      </div>
+    </div>
+
+    <!-- Status Alert Alert -->
+    <div id="status-alert" style="display:none; transform: translateY(-10px); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; background-color: var(--green-100); color: #065f46; border: 1px solid #a7f3d0; border-radius: var(--radius); padding: 16px; margin-bottom: 24px; align-items: center; gap: 12px;">
+      <i class="fa-solid fa-circle-check" style="font-size: 1.25rem;"></i>
+      <div>
+        <strong style="display: block; font-weight: 700;">Record Saved!</strong>
+        <span style="font-size: 0.875rem;" id="status-alert-text">Your medical information has been updated successfully.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Health Information</h3></div>
+      <div class="card-body">
+        <form id="medical-record-form" method="post">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label class="form-label">Blood Group</label>
+            {{ form.blood_group }}
+            {% for e in form.blood_group.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Known Medical Conditions</label>
+            {{ form.known_conditions }}
+            <div class="form-help">e.g. Diabetes, Hypertension, Asthma. Write "None" if you have no known conditions.</div>
+            {% for e in form.known_conditions.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Allergies</label>
+            {{ form.allergies }}
+            <div class="form-help">List any known allergies (food, medication, environmental). Write "None" if not applicable.</div>
+            {% for e in form.allergies.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <hr class="divider">
+          <h4 style="margin-bottom:16px;font-size:0.95rem;">Emergency Contact</h4>
+
+          <div class="grid-2" style="gap:16px;">
+            <div class="form-group">
+              <label class="form-label">Contact Name</label>
+              {{ form.emergency_contact }}
+              {% for e in form.emergency_contact.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact Phone</label>
+              {{ form.emergency_phone }}
+              {% for e in form.emergency_phone.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-top:8px;">
+            <button type="submit" id="submit-btn" class="btn btn-primary">
+              <i class="fa-solid fa-save"></i> Save Medical Record
+            </button>
+            <a href="{% url 'dashboard' %}" class="btn btn-gray">Cancel</a>
+          </div>
+        </form>
+      </div>
+      <div class="card-footer" id="last-updated-container" style="{% if not record.updated_at %}display:none;{% endif %}">
+        <span class="text-xs text-muted">Last updated: <span id="last-updated-time">{{ record.updated_at|date:"d M Y, H:i" }}</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('medical-record-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const statusAlert = document.getElementById('status-alert');
+  const statusAlertText = document.getElementById('status-alert-text');
+  const lastUpdatedEl = document.getElementById('last-updated-time');
+  const lastUpdatedContainer = document.getElementById('last-updated-container');
+
+  if (!form) return;
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Reset previous errors
+    document.querySelectorAll('.form-error').forEach(el => el.remove());
+    document.querySelectorAll('.form-control').forEach(el => el.classList.remove('is-invalid'));
+
+    // Update button state
+    const originalBtnContent = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+    const formData = new FormData(form);
+
+    fetch(window.location.href, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(errData => { throw errData; });
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.success) {
+        // Show success alert with animation
+        statusAlertText.textContent = data.message;
+        statusAlert.style.display = 'flex';
+        // Force reflow
+        statusAlert.offsetHeight;
+        statusAlert.style.transform = 'translateY(0)';
+        statusAlert.style.opacity = '1';
+
+        // Update footer last updated timestamp
+        if (data.last_updated) {
+          lastUpdatedContainer.style.display = 'block';
+          if (lastUpdatedEl) {
+            lastUpdatedEl.textContent = data.last_updated;
+          }
+        }
+
+        // Change button to success state temporarily
+        submitBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Saved!';
+        submitBtn.style.backgroundColor = 'var(--green-600)';
+        submitBtn.style.borderColor = 'var(--green-600)';
+        
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnContent;
+          submitBtn.style.backgroundColor = '';
+          submitBtn.style.borderColor = '';
+        }, 3000);
+
+        // Scroll to alert smoothly
+        statusAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    })
+    .catch(error => {
+      // Re-enable button
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnContent;
+
+      if (error && error.errors) {
+        // Render field errors
+        Object.keys(error.errors).forEach(fieldName => {
+          const field = form.querySelector(`[name="${fieldName}"]`);
+          if (field) {
+            field.classList.add('is-invalid');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'form-error';
+            errorDiv.textContent = error.errors[fieldName].map(e => e.message).join(', ');
+            field.parentNode.appendChild(errorDiv);
+          }
+        });
+      } else {
+        alert('An unexpected error occurred while saving.');
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — Makerere Hostels{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-inner">
+      <div>
+        <h1><i class="fa-solid fa-building"></i> {{ title }}</h1>
+        <p>{% if hostel %}Update hostel information{% else %}Add a new hostel listing{% endif %}</p>
+      </div>
+      <a href="{% url 'manage_hostels' %}" class="btn btn-gray"><i class="fa-solid fa-arrow-left"></i> Back</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="container" style="max-width:680px;">
+    <div class="card">
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {# BUG FIX: manager field is now part of HostelForm and rendered here correctly.
+             The old template had a duplicate manual <select name="manager_id"> that was
+             never read by the view — causing manager assignment to silently do nothing. #}
+          {% for field in form %}
+            <div class="form-group">
+              <label class="form-label">{{ field.label }}</label>
+              {% if field.field.widget.input_type == 'checkbox' %}
+                <div class="form-check">
+                  {{ field }}
+                  <span class="form-label" style="margin:0;font-weight:400;">{{ field.help_text }}</span>
+                </div>
+              {% else %}
+                {{ field }}
+              {% endif %}
+              {% for e in field.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+            </div>
+          {% endfor %}
+
+          <div style="display:flex;gap:12px;margin-top:8px;">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-save"></i> {% if hostel %}Update Hostel{% else %}Create Hostel{% endif %}
+            </button>
+            <a href="{% url 'manage_hostels' %}" class="btn btn-gray">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

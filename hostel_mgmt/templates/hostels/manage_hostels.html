@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Manage Hostels — Makerere Hostels{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-inner">
+      <div>
+        <h1><i class="fa-solid fa-building"></i> Manage Hostels</h1>
+        <p>{% if user.role == 'admin' %}All hostels in the system{% else %}Your hostel listings{% endif %}</p>
+      </div>
+      <a href="{% url 'create_hostel' %}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add New Hostel</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="container">
+    {% if hostels %}
+      <div style="display:grid;gap:20px;">
+        {% for hostel in hostels %}
+        <div class="card">
+          <div class="card-body" style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+            <!-- Image -->
+            <div style="width:120px;height:90px;border-radius:var(--radius);overflow:hidden;flex-shrink:0;background:var(--blue-100);display:flex;align-items:center;justify-content:center;color:var(--blue-400);font-size:2rem;">
+              {% if hostel.image %}
+                <img src="{{ hostel.image.url }}" alt="{{ hostel.name }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+                <i class="fa-solid fa-building"></i>
+              {% endif %}
+            </div>
+            <!-- Info -->
+            <div style="flex:1;min-width:200px;">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+                <h3 style="font-size:1.1rem;margin:0;">{{ hostel.name }}</h3>
+                <span class="badge {% if hostel.is_active %}badge-available{% else %}badge-cancelled{% endif %}">
+                  {% if hostel.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+              </div>
+              <div class="text-sm text-muted" style="margin-bottom:8px;">
+                <i class="fa-solid fa-location-dot"></i> {{ hostel.address }}
+              </div>
+              <div style="display:flex;gap:16px;font-size:0.8rem;color:var(--gray-600);">
+                <span><i class="fa-solid fa-door-open" style="color:var(--green-600);"></i> {{ hostel.available_rooms_count }} available</span>
+                <span><i class="fa-solid fa-door-closed"></i> {{ hostel.total_rooms_count }} total rooms</span>
+                {% if user.role == 'admin' and hostel.manager %}
+                  <span><i class="fa-solid fa-user-tie"></i> {{ hostel.manager.get_full_name|default:hostel.manager.username }}</span>
+                {% endif %}
+              </div>
+            </div>
+            <!-- Actions -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;">
+              <a href="{% url 'hostel_detail' hostel.pk %}" class="btn btn-gray btn-sm"><i class="fa-solid fa-eye"></i> View</a>
+              <a href="{% url 'manage_rooms' hostel.pk %}" class="btn btn-outline btn-sm"><i class="fa-solid fa-door-open"></i> Rooms</a>
+              <a href="{% url 'edit_hostel' hostel.pk %}" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card">
+        <div class="card-body">
+          <div class="empty-state">
+            <i class="fa-solid fa-building-circle-xmark"></i>
+            <h3>No hostels yet</h3>
+            <p>Add your first hostel to start managing accommodation.</p>
+            <a href="{% url 'create_hostel' %}" class="btn btn-primary" style="margin-top:16px;">Add Hostel</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

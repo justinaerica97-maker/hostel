@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users — Makerere Hostels{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-inner">
+      <div>
+        <h1><i class="fa-solid fa-users"></i> All Users</h1>
+        <p>Manage system users and roles</p>
+      </div>
+      <span class="badge badge-blue">{{ users|length }} users</span>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="container">
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Student No.</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:32px;height:32px;border-radius:50%;background:var(--blue-100);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:var(--blue-700);flex-shrink:0;overflow:hidden;">
+                  {% if u.profile_picture %}
+                    {# BUG FIX: profile pictures now display correctly via MEDIA_URL #}
+                    <img src="{{ u.profile_picture.url }}" style="width:100%;height:100%;object-fit:cover;">
+                  {% else %}
+                    {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                  {% endif %}
+                </div>
+                <div>
+                  <strong>{{ u.get_full_name|default:u.username }}</strong><br>
+                  <span class="text-xs text-muted">@{{ u.username }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="text-sm">{{ u.email }}</td>
+            <td><span class="badge badge-blue">{{ u.get_role_display }}</span></td>
+            <td class="text-sm">{{ u.student_number|default:"—" }}</td>
+            <td class="text-xs text-muted">{{ u.date_joined|date:"d M Y" }}</td>
+            <td>
+              {# BUG FIX: admin can now change user roles from the UI #}
+              {% if u != request.user %}
+              <form method="post" action="{% url 'admin_change_user_role' u.pk %}" style="display:flex;gap:6px;align-items:center;">
+                {% csrf_token %}
+                <select name="role" class="form-control" style="padding:4px 8px;font-size:0.8rem;height:auto;">
+                  <option value="student" {% if u.role == 'student' %}selected{% endif %}>Student</option>
+                  <option value="manager" {% if u.role == 'manager' %}selected{% endif %}>Manager</option>
+                  <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+                </select>
+                <button type="submit" class="btn btn-outline btn-sm">Change</button>
+              </form>
+              {% else %}
+                <span class="text-xs text-muted">(you)</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

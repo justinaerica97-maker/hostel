@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Messages & Feedback — Makerere Hostels{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-inner">
+      <div>
+        <h1><i class="fa-solid fa-envelope"></i> Messages & Feedback</h1>
+        <p>Messages sent by students through hostel contact forms</p>
+      </div>
+      <span class="badge badge-blue">{{ messages|length }} messages</span>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="container">
+    {% if messages %}
+    <div style="display:grid;gap:16px;">
+      {% for msg in messages %}
+      <div class="card" style="{% if not msg.is_read %}border-left:4px solid var(--blue-600);{% endif %}">
+        <div class="card-body">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+                {% if not msg.is_read %}
+                  <span class="badge badge-blue"><i class="fa-solid fa-circle" style="font-size:0.5rem;"></i> New</span>
+                {% endif %}
+                <span class="text-muted text-xs">{{ msg.created_at|date:"d M Y, H:i" }}</span>
+                <span class="badge badge-cancelled">{{ msg.hostel.name }}</span>
+              </div>
+              <h3 style="font-size:1rem;margin-bottom:6px;">{{ msg.subject }}</h3>
+              <div style="display:flex;gap:16px;font-size:0.8rem;color:var(--gray-600);margin-bottom:12px;">
+                {# BUG FIX: show the actual sender — the student who wrote the message #}
+                <span><i class="fa-solid fa-user"></i> {{ msg.sender_name }}</span>
+                <span><i class="fa-solid fa-envelope"></i> {{ msg.sender_email }}</span>
+                {% if msg.sender %}
+                  <span class="text-xs" style="color:var(--blue-600);">
+                    <i class="fa-solid fa-id-badge"></i> {{ msg.sender.student_number|default:"Registered user" }}
+                  </span>
+                {% endif %}
+              </div>
+              <div style="background:var(--gray-50);border-radius:var(--radius);padding:14px;font-size:0.875rem;line-height:1.6;">
+                {{ msg.message|linebreaks }}
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              {% if not msg.is_read %}
+                <form method="post" action="{% url 'mark_feedback_read' msg.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline btn-sm">
+                    <i class="fa-solid fa-check"></i> Mark Read
+                  </button>
+                </form>
+              {% else %}
+                <span class="text-xs text-muted"><i class="fa-solid fa-circle-check"></i> Read</span>
+              {% endif %}
+              <a href="mailto:{{ msg.sender_email }}?subject=Re: {{ msg.subject }}" class="btn btn-gray btn-sm">
+                <i class="fa-solid fa-reply"></i> Reply
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <div class="card">
+        <div class="card-body">
+          <div class="empty-state">
+            <i class="fa-solid fa-envelope-open"></i>
+            <h3>No messages yet</h3>
+            <p>Messages sent through hostel contact forms will appear here.</p>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Book Room {{ room.room_number }} — Makerere Hostels{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-inner">
+      <div>
+        <h1><i class="fa-solid fa-calendar-plus"></i> Book a Room</h1>
+        <p>Submit your accommodation request</p>
+      </div>
+      <a href="{% url 'hostel_detail' room.hostel.pk %}" class="btn btn-gray"><i class="fa-solid fa-arrow-left"></i> Back</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="container" style="max-width:640px;">
+
+    <!-- Room Summary -->
+    <div class="card" style="margin-bottom:24px;border-left:4px solid var(--blue-600);">
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div class="text-muted text-sm">Hostel</div>
+            <div style="font-weight:700;font-size:1.1rem;">{{ room.hostel.name }}</div>
+            <div class="text-muted text-sm" style="margin-top:4px;"><i class="fa-solid fa-location-dot"></i> {{ room.hostel.address }}</div>
+          </div>
+          <div>
+            <div class="text-muted text-sm">Room Details</div>
+            <div style="font-weight:700;">Room {{ room.room_number }}</div>
+            <div class="text-sm">{{ room.get_room_type_display }}</div>
+            <span class="badge badge-available" style="margin-top:6px;">Available</span>
+          </div>
+          <div>
+            <div class="text-muted text-sm">Price</div>
+            <div style="font-size:1.4rem;font-weight:700;color:var(--blue-600);">
+              UGX {{ room.price_per_semester|floatformat:0 }}
+            </div>
+            <div class="text-xs text-muted">per semester</div>
+          </div>
+        </div>
+        {% if room.description %}
+          <hr class="divider" style="margin:16px 0;">
+          <p class="text-sm text-muted">{{ room.description }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Booking Form -->
+    <div class="card">
+      <div class="card-header"><h3>Booking Request</h3></div>
+      <div class="card-body">
+        <div style="background:var(--blue-50);border-radius:var(--radius);padding:14px;margin-bottom:20px;font-size:0.875rem;color:var(--blue-800);">
+          <i class="fa-solid fa-circle-info"></i>
+          Your request will be sent to the hostel manager for approval. You'll receive an email notification once a decision is made.
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="form-label">Select Semester *</label>
+            {{ form.semester }}
+            {% for e in form.semester.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+          </div>
+          <div style="display:flex;gap:12px;">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="fa-solid fa-calendar-check"></i> Submit Booking Request
+            </button>
+            <a href="{% url 'hostel_detail' room.hostel.pk %}" class="btn btn-gray btn-lg">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

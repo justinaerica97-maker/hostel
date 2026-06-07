@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Manage Bookings — Makerere Hostels{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-inner">
+      <div>
+        <h1><i class="fa-solid fa-list-check"></i> Booking Requests</h1>
+        <p>Review and manage student accommodation bookings</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="container">
+
+    <!-- Status Filter -->
+    <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
+      <a href="{% url 'manage_bookings' %}" class="btn {% if not status_filter %}btn-primary{% else %}btn-gray{% endif %} btn-sm">All</a>
+      <a href="?status=pending" class="btn {% if status_filter == 'pending' %}btn-primary{% else %}btn-gray{% endif %} btn-sm">
+        <i class="fa-solid fa-clock"></i> Pending
+      </a>
+      <a href="?status=approved" class="btn {% if status_filter == 'approved' %}btn-primary{% else %}btn-gray{% endif %} btn-sm">
+        <i class="fa-solid fa-circle-check"></i> Approved
+      </a>
+      <a href="?status=rejected" class="btn {% if status_filter == 'rejected' %}btn-primary{% else %}btn-gray{% endif %} btn-sm">
+        <i class="fa-solid fa-circle-xmark"></i> Rejected
+      </a>
+      <a href="?status=cancelled" class="btn {% if status_filter == 'cancelled' %}btn-primary{% else %}btn-gray{% endif %} btn-sm">
+        <i class="fa-solid fa-ban"></i> Cancelled
+      </a>
+    </div>
+
+    {% if bookings %}
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Hostel / Room</th>
+            <th>Semester</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bookings %}
+          <tr>
+            <td>
+              <strong>{{ b.student.get_full_name|default:b.student.username }}</strong><br>
+              <span class="text-xs text-muted">{{ b.student.student_number }}</span><br>
+              <span class="text-xs text-muted">{{ b.student.course }}</span>
+            </td>
+            <td>
+              <strong>{{ b.room.hostel.name }}</strong><br>
+              <span class="text-xs text-muted">Room {{ b.room.room_number }} · {{ b.room.get_room_type_display }}</span>
+            </td>
+            <td>{{ b.semester }}</td>
+            <td><span class="badge badge-{{ b.status }}">{{ b.get_status_display }}</span></td>
+            <td class="text-xs text-muted">{{ b.created_at|date:"d M Y" }}</td>
+            <td>
+              {% if b.status == 'pending' %}
+              <div style="display:flex;gap:6px;">
+                <a href="{% url 'approve_booking' b.pk %}" class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i> Approve</a>
+                <a href="{% url 'reject_booking' b.pk %}" class="btn btn-danger btn-sm"><i class="fa-solid fa-xmark"></i> Reject</a>
+              </div>
+              {% else %}
+              <span class="text-muted text-xs">{{ b.updated_at|date:"d M Y" }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <div class="card">
+        <div class="card-body">
+          <div class="empty-state">
+            <i class="fa-solid fa-calendar-xmark"></i>
+            <h3>No bookings found</h3>
+            <p>{% if status_filter %}No {{ status_filter }} bookings at the moment.{% else %}No bookings have been submitted yet.{% endif %}</p>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

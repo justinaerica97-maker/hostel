@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — Makerere Hostels{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-inner">
+      <div>
+        <h1><i class="fa-solid fa-user-circle"></i> My Profile</h1>
+        <p>Update your personal information and profile photo</p>
+      </div>
+      <span class="badge badge-blue">{{ user.get_role_display }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="container" style="max-width:720px;">
+    <div class="card">
+      <div class="card-body">
+        <!-- Avatar -->
+        <div style="display:flex;align-items:center;gap:20px;margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid var(--gray-200);">
+          <div style="width:80px;height:80px;border-radius:50%;overflow:hidden;background:var(--blue-100);display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--blue-600);flex-shrink:0;">
+            {% if user.profile_picture %}
+              <img src="{{ user.profile_picture.url }}" alt="Profile" style="width:100%;height:100%;object-fit:cover;">
+            {% else %}
+              {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+            {% endif %}
+          </div>
+          <div>
+            <h3 style="margin-bottom:4px;">{{ user.get_full_name|default:user.username }}</h3>
+            <p class="text-muted text-sm">{{ user.email }}</p>
+          </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="grid-2" style="gap:16px;">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              {{ form.first_name }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              {{ form.last_name }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            {{ form.email }}
+          </div>
+          <div class="grid-2" style="gap:16px;">
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              {{ form.phone_number }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Student Number</label>
+              {{ form.student_number }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Course</label>
+            {{ form.course }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Profile Photo</label>
+            {{ form.profile_picture }}
+            <div class="form-help">Upload a JPG or PNG image (max 5MB)</div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:8px;">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-save"></i> Save Changes
+            </button>
+            <a href="{% url 'dashboard' %}" class="btn btn-gray">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

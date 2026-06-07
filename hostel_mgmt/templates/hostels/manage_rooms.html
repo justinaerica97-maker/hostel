@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Rooms — {{ hostel.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-inner">
+      <div>
+        <h1><i class="fa-solid fa-door-open"></i> Rooms — {{ hostel.name }}</h1>
+        <p>Manage individual room listings and availability</p>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <a href="{% url 'manage_hostels' %}" class="btn btn-gray btn-sm"><i class="fa-solid fa-arrow-left"></i> Back</a>
+        <a href="{% url 'add_room' hostel.pk %}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Room</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="container">
+    {% if rooms %}
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Room No.</th>
+            <th>Type</th>
+            <th>Price/Semester</th>
+            <th>Status</th>
+            <th>Description</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for room in rooms %}
+          <tr>
+            <td><strong>{{ room.room_number }}</strong></td>
+            <td>{{ room.get_room_type_display }}</td>
+            <td>UGX {{ room.price_per_semester|floatformat:0 }}</td>
+            <td><span class="badge badge-{{ room.status }}">{{ room.get_status_display }}</span></td>
+            <td class="text-sm text-muted">{{ room.description|truncatechars:60|default:"—" }}</td>
+            <td>
+              <a href="{% url 'edit_room' room.pk %}" class="btn btn-outline btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <div class="card">
+        <div class="card-body">
+          <div class="empty-state">
+            <i class="fa-solid fa-door-closed"></i>
+            <h3>No rooms yet</h3>
+            <p>Add rooms to this hostel so students can browse and book.</p>
+            <a href="{% url 'add_room' hostel.pk %}" class="btn btn-primary" style="margin-top:16px;">Add First Room</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

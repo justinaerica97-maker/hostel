@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Makerere Hostels{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="container">
+    <div class="navbar-inner">
+      <a href="{% url 'home' %}" class="navbar-brand">
+        <i class="fa-solid fa-building-columns"></i>
+        <div>
+          Makerere Hostels
+          <span>Student Accommodation</span>
+        </div>
+      </a>
+
+      <button class="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+
+      <div class="nav-links">
+        <a href="{% url 'hostel_list' %}" class="nav-link"><i class="fa-solid fa-house"></i> Browse Hostels</a>
+
+        {% if user.is_authenticated %}
+          <a href="{% url 'dashboard' %}" class="nav-link"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+
+          {% if user.role == 'student' %}
+            <a href="{% url 'my_bookings' %}" class="nav-link"><i class="fa-solid fa-calendar-check"></i> My Bookings</a>
+            <a href="{% url 'my_medical_record' %}" class="nav-link"><i class="fa-solid fa-heart-pulse"></i> Medical</a>
+          {% endif %}
+
+          {% if user.role == 'manager' or user.role == 'admin' %}
+            <a href="{% url 'manage_hostels' %}" class="nav-link"><i class="fa-solid fa-building"></i> Manage Hostels</a>
+            <a href="{% url 'manage_bookings' %}" class="nav-link"><i class="fa-solid fa-list-check"></i> Bookings</a>
+            <a href="{% url 'view_feedback' %}" class="nav-link"><i class="fa-solid fa-envelope"></i> Messages</a>
+          {% endif %}
+
+          {% if user.role == 'admin' %}
+            <a href="{% url 'admin_users' %}" class="nav-link"><i class="fa-solid fa-users"></i> Users</a>
+            <a href="{% url 'admin_medical_records' %}" class="nav-link"><i class="fa-solid fa-stethoscope"></i> Medical Records</a>
+          {% endif %}
+
+        {% else %}
+          <a href="{% url 'login' %}" class="nav-link"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+          <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Register</a>
+        {% endif %}
+      </div>
+
+      {% if user.is_authenticated %}
+      <div class="nav-user" style="margin-left:16px;">
+        <div class="nav-avatar">
+          {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" alt="Profile">
+          {% else %}
+            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+          {% endif %}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <a href="{% url 'profile' %}" style="font-size:0.8rem;font-weight:600;color:var(--gray-800);">{{ user.get_full_name|default:user.username }}</a>
+          <a href="{% url 'logout' %}" style="font-size:0.75rem;color:var(--gray-500);">Sign out</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<!-- Flash Messages -->
+<div class="messages-container">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+      <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% elif message.tags == 'error' %}fa-circle-xmark{% elif message.tags == 'warning' %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+      {{ message }}
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Main Content -->
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <strong style="color:var(--white);">Makerere University</strong><br>
+        Student Hostel Management System
+      </div>
+      <div>
+        <a href="{% url 'hostel_list' %}">Browse Hostels</a> &nbsp;·&nbsp;
+        {% if user.is_authenticated %}
+          <a href="{% url 'dashboard' %}">Dashboard</a> &nbsp;·&nbsp;
+          <a href="{% url 'logout' %}">Sign Out</a>
+        {% else %}
+          <a href="{% url 'login' %}">Login</a> &nbsp;·&nbsp;
+          <a href="{% url 'register' %}">Register</a>
+        {% endif %}
+      </div>
+      <div>&copy; 2025 Makerere University. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
